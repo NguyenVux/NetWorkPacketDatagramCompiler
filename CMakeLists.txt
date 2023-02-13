@@ -2,14 +2,19 @@ cmake_minimum_required(VERSION 3.26)
 set(CMAKE_CXX_STANDARD 17)
 
 
-set(COMMON_SOURCES)
-
-if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
 project("MVN Datagram Parser")
-add_executable("Parser" "src/main.cpp" ${COMMON_SOURCES})
-target_include_directories("Parser" PUBLIC "include")
-else()
-add_library(${COMMON_SOURCES})
-target_include_directories("Parser" PUBLIC "include")
+set(EXCUTABLE_TARGET "Compile")
+
+option(RELEASE_MODE "Option description" OFF)
+
+if(RELEASE_MODE)
+  add_definitions(-D__RELEASE__)
 endif()
 
+add_definitions(-D_HAS_EXCEPTIONS=0)
+include("Sources.cmake")
+add_executable(${EXCUTABLE_TARGET} 
+${SOURCES}
+)
+
+target_include_directories(${EXCUTABLE_TARGET} PUBLIC "include")

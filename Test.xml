@@ -1,0 +1,5 @@
+<class name="PlayerD">
+	<short name="ID" visibility="public"/>
+	<long name="Heath" visibility="private"/>
+	<long name="Heath2" visibility="private"/>
+</class>
