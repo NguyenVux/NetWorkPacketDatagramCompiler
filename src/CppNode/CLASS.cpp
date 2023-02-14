@@ -13,6 +13,23 @@ CLASS::CLASS():
 
 }
 
+size_t CLASS::getSize(){
+	size_t size = 0;
+	for(auto node : m_privateNodes)
+	{
+		size+= node->getSize();
+	}
+	for(auto node : m_publicNodes)
+	{
+		size+= node->getSize();
+	}
+	for(auto node : m_protectedNodes)
+	{
+		size+= node->getSize();
+	}
+	return size;
+}
+
 NodeInitializeResult CLASS::Initialize(const pugi::xml_node& i_node)
 {
 	for(auto childNode : i_node.children())

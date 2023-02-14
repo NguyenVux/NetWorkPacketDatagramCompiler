@@ -16,6 +16,7 @@ public:
 		return m_name.compare(other.GetName());
 	}
 	void SetName(std::string i_name);
+	virtual size_t getSize() = 0;
 	std::string GetName() const;
 	virtual ~NodeBase() = default;
 

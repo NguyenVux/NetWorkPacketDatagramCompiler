@@ -24,6 +24,7 @@ public:
 	void AddPublicNode(std::shared_ptr<NodeBase> i_publicNode);
 	void AddProtectedNode(std::shared_ptr<NodeBase> i_protectedNode);
 	void AddPrivateNode(std::shared_ptr<NodeBase> i_privatedNode);
+	virtual size_t getSize() override;
 	virtual std::string toString() override;
 	virtual ~CLASS() = default;
 };
