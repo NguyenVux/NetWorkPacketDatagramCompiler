@@ -34,5 +34,6 @@ public:
 	InsertMemberResult InsertTo(std::shared_ptr<NodeBase> i_publicNode, container& i_list);
 	virtual size_t getSize() override;
 	virtual std::string toString() override;
+	virtual std::string getSource() override;
 	virtual ~CLASS() = default;
 };

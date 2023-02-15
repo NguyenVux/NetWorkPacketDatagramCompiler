@@ -1,8 +1,12 @@
+#include <ios>
 #include <iostream>
 #include <pugixml.hpp>
 #include <utils/result.h>
 #include <CppNode/NodeFactory.h>
 #include <sstream>
+#include <fstream>
+#include <format>
+
 int main(int argc,char* argv[]){
 
 	if(argc == 1)
@@ -17,11 +21,7 @@ int main(int argc,char* argv[]){
 		std::cout << "Cannot Parse file \"" << std::endl;
 		return -1;
 	}
-	auto rootNodes = RootNode.children().begin();
-	for (auto i : rootNodes->children())
-	{
-		std::cout << i.attribute("name").value() << std::endl;
-	}
+	
 
 	NodeFactory factory;
 	CreateNodeResult createNodeResult = factory.CreateTree(RootNode);
@@ -32,7 +32,18 @@ int main(int argc,char* argv[]){
 	}
 
 	auto root  = createNodeResult.extract_payload();
-	std::cout << root->toString();
+
+
+	std::cout << root->toString() << std::endl;
+	std::cout << root->getSource() << std::endl;
+
+	std::ofstream header(std::format("{}.hpp",root->GetName()));
+	std::ofstream source(std::format("{}.cpp",root->GetName()));
+
+	header << root->toString();
+	source << root->getSource();
+
+
 	//std::cout << "Parsing Success" << std::endl;
 	/*std::stringstream ss;
 	ss.write(reinterpret_cast<>;);*/

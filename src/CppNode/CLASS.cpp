@@ -1,11 +1,15 @@
 #include "CppNode/INode.h"
 #include "CppNode/NodeBase.h"
+#include "CppNode/PrimitiveNode.h"
 #include "utils/result.h"
 #include <CppNode/CLASS.h>
 #include <CppNode/NodeFactory.h>
+#include <cstddef>
+#include <memory>
 #include <sstream>
 #include <iostream>
 #include <string.h>
+#include <format>
 
 CLASS::CLASS():
 	NodeBase("class")
@@ -92,6 +96,9 @@ InsertMemberResult CLASS::InsertTo(std::shared_ptr<NodeBase> i_node, container& 
 std::string CLASS::toString()
 {
 	std::stringstream ss;
+
+	ss << "#pragma once" << std::endl;
+	ss << "#include <memory>" << std::endl;
 	ss << m_keyWord << " " << m_name << "{" << std::endl;
 
 	//generate protected:
@@ -111,6 +118,11 @@ std::string CLASS::toString()
 		ss << "\t" << i->toString();
 	}
 	ss << "\t" << "std::unique_ptr<char[]> Serialize();" << std::endl;
+	for(auto i : m_privateNodes.m_list)
+	{
+		ss << "\t" << std::format("{} get_{}() const;",i->GetKeyWord(),i->GetName()) << std::endl;
+		ss << "\t" << std::format("void set_{}(const {}& i_input);",i->GetName(),i->GetKeyWord()) << std::endl;
+	}
 
 	//generate private:
 	if (!m_privateNodes.m_set.empty())
@@ -125,3 +137,52 @@ std::string CLASS::toString()
 
 	return ss.str();
 }
+
+std::string CLASS::getSource() {
+	std::stringstream ss;
+	ss << std::format("#include \"{}.hpp\"",m_name) << std::endl;
+	ss << "#include <WinSock2.h>" << std::endl;
+
+	ss << std::format("std::unique_ptr<char[]> {}::Serialize() {{", m_name) << std::endl;
+
+	size_t size = getSize();
+	ss << std::format("\tstd::unique_ptr<char[]> buffer = std::make_unique<char[]>({});",size) << std::endl;
+	ss << "\tsize_t index = 0;" << std::endl;
+	for(auto i : m_privateNodes.m_list)
+	{
+		ss << "\t{" << std::endl;
+		if(std::dynamic_pointer_cast<SHORT>(i) != nullptr)
+		{
+			std::shared_ptr<SHORT> temp = std::dynamic_pointer_cast<SHORT>(i);
+			ss << std::format("\t\t{} temp = htons({});", temp->GetKeyWord(), temp->GetName()) << std::endl;
+		}
+		else if(std::dynamic_pointer_cast<LONG>(i) != nullptr)
+		{
+			std::shared_ptr<LONG> temp = std::dynamic_pointer_cast<LONG>(i);
+			ss << std::format("\t\t{} temp = htonl({});", temp->GetKeyWord(), temp->GetName()) << std::endl;
+		}
+		else{
+			ss << std::format("\t\t{} temp = {};", i->GetKeyWord(), i->GetName()) << std::endl;
+		}
+		ss << std::format("\t\tmemcpy(buffer.get() + index,&temp,{});",i->getSize()) << std::endl;
+		ss << std::format("\t\tindex+={};",i->getSize()) << std::endl;
+		ss << "\t}" << std::endl;
+	}
+	ss << "\treturn std::move(buffer);" << std::endl;
+	ss << "}" << std::endl;
+	for(auto i : m_privateNodes.m_list)
+	{
+		ss << std::format("{} {}::get_{}() const {{",i->GetKeyWord(),m_name,i->GetName()) << std::endl;
+		ss << std::format("\treturn {};",i->GetName()) << std::endl;
+		ss << "}" << std::endl;
+		ss << std::endl << std::endl;
+		ss << std::format("void {}::set_{}(const {}& i_input) {{",m_name,i->GetName(),i->GetKeyWord()) << std::endl;
+		ss << std::format("\tthis->{} = i_input;",i->GetName()) << std::endl;
+		ss << "}" << std::endl;
+	}
+
+
+	return ss.str();
+}
+
+

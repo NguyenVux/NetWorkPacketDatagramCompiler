@@ -12,3 +12,7 @@ std::string NodeBase::GetName() const
 {
 	return m_name;
 }
+
+std::string NodeBase::GetKeyWord() const {
+	return m_keyWord;
+}
