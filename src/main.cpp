@@ -2,7 +2,7 @@
 #include <pugixml.hpp>
 #include <utils/result.h>
 #include <CppNode/NodeFactory.h>
-
+#include <sstream>
 int main(int argc,char* argv[]){
 
 	if(argc == 1)
@@ -17,7 +17,11 @@ int main(int argc,char* argv[]){
 		std::cout << "Cannot Parse file \"" << std::endl;
 		return -1;
 	}
-
+	auto rootNodes = RootNode.children().begin();
+	for (auto i : rootNodes->children())
+	{
+		std::cout << i.attribute("name").value() << std::endl;
+	}
 
 	NodeFactory factory;
 	CreateNodeResult createNodeResult = factory.CreateTree(RootNode);
@@ -29,9 +33,9 @@ int main(int argc,char* argv[]){
 
 	auto root  = createNodeResult.extract_payload();
 	std::cout << root->toString();
-
 	//std::cout << "Parsing Success" << std::endl;
-
+	/*std::stringstream ss;
+	ss.write(reinterpret_cast<>;);*/
 
 	return 0;
 }

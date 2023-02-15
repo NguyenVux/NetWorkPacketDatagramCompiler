@@ -15,15 +15,15 @@ CLASS::CLASS():
 
 size_t CLASS::getSize(){
 	size_t size = 0;
-	for(auto node : m_privateNodes)
+	for(auto node : m_privateNodes.m_list)
 	{
 		size+= node->getSize();
 	}
-	for(auto node : m_publicNodes)
+	for(auto node : m_publicNodes.m_list)
 	{
 		size+= node->getSize();
 	}
-	for(auto node : m_protectedNodes)
+	for(auto node : m_protectedNodes.m_list)
 	{
 		size+= node->getSize();
 	}
@@ -43,19 +43,27 @@ NodeInitializeResult CLASS::Initialize(const pugi::xml_node& i_node)
 			}
 			continue;
 		}
+		auto node = result.extract_payload();
+		InsertMemberResult nResult;
 		if(strcmp(childNode.attribute("visibility").value(),"public") == 0){
 
-			AddPublicNode(result.extract_payload());
+			nResult = InsertTo(node,m_publicNodes);
+
 		}
 		else if (strcmp(childNode.attribute("visibility").value(),"protected") == 0)
 		{
-			AddProtectedNode(result.extract_payload());
+			nResult = InsertTo(node,m_protectedNodes);
 		}
 		else
 		{
-			AddPrivateNode(result.extract_payload());
+			nResult = InsertTo(node,m_privateNodes);
 		}
-
+		if (nResult != VuxNguyen::success &&
+			nResult.error().errorCode() != InsertMemberErrorCode::NullNode)
+		{
+			return NodeInitializeError(NodeInitializeErrorCode::GenericError, "redefined member: " + node->GetName());
+		}
+		
 	}
 	bool isNameMissing = !i_node.attribute("name");
 	if (isNameMissing)
@@ -66,32 +74,19 @@ NodeInitializeResult CLASS::Initialize(const pugi::xml_node& i_node)
 	return NodeInitializeResult();
 }
 
-
-void CLASS::AddPrivateNode(std::shared_ptr<NodeBase> i_privateNode)
+InsertMemberResult CLASS::InsertTo(std::shared_ptr<NodeBase> i_node, container& i_list)
 {
-	if (i_privateNode == nullptr)
+	if (i_node == nullptr)
 	{
-		return;
+		return InsertMemberError(InsertMemberErrorCode::NullNode);;
 	}
-	m_publicNodes.insert(i_privateNode);
-}
-
-void CLASS::AddPublicNode(std::shared_ptr<NodeBase> i_publicNode)
-{
-	if (i_publicNode == nullptr)
+	if (i_list.m_set.find(i_node->GetName()) != i_list.m_set.end())
 	{
-		return;
+		return InsertMemberError(InsertMemberErrorCode::NameExist);
 	}
-	m_publicNodes.insert(i_publicNode);
-}
-
-void CLASS::AddProtectedNode(std::shared_ptr<NodeBase> i_protectedNode)
-{
-	if (i_protectedNode == nullptr)
-	{
-		return;
-	}
-	m_publicNodes.insert(i_protectedNode);
+	i_list.m_set.insert(i_node->GetName());
+	i_list.m_list.push_back(i_node);
+	return InsertMemberResult();
 }
 
 std::string CLASS::toString()
@@ -100,31 +95,29 @@ std::string CLASS::toString()
 	ss << m_keyWord << " " << m_name << "{" << std::endl;
 
 	//generate protected:
-	if(!m_protectedNodes.empty())
+	if(!m_protectedNodes.m_set.empty())
 	{
 		ss << "protected:" << std::endl;
 	}
-	for (auto i : m_protectedNodes)
+	for (auto i : m_protectedNodes.m_list)
 	{
 		ss << "\t" << i->toString();
 	}
 
 	//generate Public:
-	if (!m_publicNodes.empty())
-	{
-		ss << "public:" << std::endl;
-	}
-	for(auto i : m_publicNodes)
+	ss << "public:" << std::endl;
+	for(auto i : m_publicNodes.m_list)
 	{
 		ss << "\t" << i->toString();
 	}
+	ss << "\t" << "std::unique_ptr<char[]> Serialize();" << std::endl;
 
 	//generate private:
-	if (!m_privateNodes.empty())
+	if (!m_privateNodes.m_set.empty())
 	{
 		ss << "private:" << std::endl;
 	}
-	for (auto i : m_privateNodes)
+	for (auto i : m_privateNodes.m_list)
 	{
 		ss << "\t" << i->toString();
 	}

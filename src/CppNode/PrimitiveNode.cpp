@@ -24,6 +24,10 @@ NodeInitializeResult SHORT::Initialize(const pugi::xml_node& i_node) {
 	return NodeInitializeResult();
 }
 
+size_t SHORT::getSize(){
+	return sizeof(short);
+}
+
 LONG::LONG() : NodeBase("long") {}
 
 std::string LONG::toString() {
@@ -42,6 +46,11 @@ NodeInitializeResult LONG::Initialize(const pugi::xml_node& i_node) {
 	return NodeInitializeResult();
 }
 
+size_t LONG::getSize(){
+	return sizeof(long);
+}
+
+
 BYTE::BYTE() : NodeBase("char") {}
 
 std::string BYTE::toString() {
@@ -59,3 +68,15 @@ NodeInitializeResult BYTE::Initialize(const pugi::xml_node& i_node) {
 	SetName(i_node.attribute("name").as_string());
 	return NodeInitializeResult();
 }
+
+size_t BYTE::getSize(){
+	return sizeof(char);
+}
+
+
+
+
+
+
+
+
